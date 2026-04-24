@@ -14,7 +14,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 10000;
 
 /* -------------------------
-   RESEND (EMAIL API)
+   EMAIL (RESEND)
 --------------------------*/
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -36,7 +36,7 @@ app.get("/", (req, res) => {
 });
 
 /* -------------------------
-   VIES CHECK
+   VIES CHECK (FIXED)
 --------------------------*/
 async function checkVAT(countryCode, vatNumber) {
   try {
@@ -58,16 +58,20 @@ async function checkVAT(countryCode, vatNumber) {
       countryCode,
       vatNumber
     };
+
   } catch (err) {
+    console.log("VIES ERROR:", err.message);
+
     return {
       valid: null,
-      error: "VIES system unavailable"
+      error: "VIES temporary unavailable",
+      retry: true
     };
   }
 }
 
 /* -------------------------
-   PDF GENERATOR
+   PDF
 --------------------------*/
 function generatePDF(data) {
   return new Promise((resolve) => {
@@ -81,22 +85,23 @@ function generatePDF(data) {
     doc.moveDown();
 
     doc.fontSize(12).text(`VAT: ${data.countryCode}${data.vatNumber}`);
-    doc.text(`STATUS: ${data.valid ? "VALID" : "INVALID"}`);
+    doc.text(`STATUS: ${data.valid === null ? "UNKNOWN" : data.valid ? "VALID" : "INVALID"}`);
     doc.text(`NAME: ${data.name || "-"}`);
     doc.text(`ADDRESS: ${data.address || "-"}`);
+    doc.text(`NOTE: ${data.error || "OK"}`);
 
     doc.end();
   });
 }
 
 /* -------------------------
-   CHECK ENDPOINT
+   CHECK
 --------------------------*/
 app.get("/check", async (req, res) => {
   const { country, vat } = req.query;
 
   if (!country || !vat) {
-    return res.status(400).json({ error: "Missing country or vat" });
+    return res.status(400).json({ error: "Missing params" });
   }
 
   const data = await checkVAT(country, vat);
@@ -104,13 +109,13 @@ app.get("/check", async (req, res) => {
 });
 
 /* -------------------------
-   PDF ENDPOINT
+   PDF
 --------------------------*/
 app.get("/pdf", async (req, res) => {
   const { country, vat } = req.query;
 
   if (!country || !vat) {
-    return res.status(400).send("Missing parameters");
+    return res.status(400).send("Missing params");
   }
 
   const data = await checkVAT(country, vat);
@@ -122,14 +127,12 @@ app.get("/pdf", async (req, res) => {
 });
 
 /* -------------------------
-   EMAIL (RESEND)
+   EMAIL
 --------------------------*/
 app.post("/send-email", async (req, res) => {
   try {
     if (!resend) {
-      return res.status(500).json({
-        error: "Email not configured (missing RESEND_API_KEY)"
-      });
+      return res.status(500).json({ error: "Missing RESEND_API_KEY" });
     }
 
     const { email, country, vat, newsletter } = req.body;
@@ -146,15 +149,14 @@ app.post("/send-email", async (req, res) => {
       to: email,
       subject: "VAT Validation Report",
       html: `
-        <h2>VAT Validation Report</h2>
+        <h2>VAT Report</h2>
         <p><b>VAT:</b> ${country}${vat}</p>
-        <p><b>Status:</b> ${data.valid ? "VALID" : "INVALID"}</p>
-        <p><b>Company:</b> ${data.name || "-"}</p>
+        <p><b>Status:</b> ${data.valid === null ? "UNKNOWN" : data.valid ? "VALID" : "INVALID"}</p>
       `,
       attachments: [
         {
           filename: "vies.pdf",
-          content: pdf
+          content: pdf.toString("base64")
         }
       ]
     });
@@ -166,13 +168,13 @@ app.post("/send-email", async (req, res) => {
     res.json({ success: true });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Email sending failed" });
+    console.log(err);
+    res.status(500).json({ error: "Email failed" });
   }
 });
 
 /* -------------------------
-   START SERVER
+   START
 --------------------------*/
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Server running on port " + PORT);
