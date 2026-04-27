@@ -3,8 +3,13 @@ import cors from "cors";
 import PDFDocument from "pdfkit";
 import dotenv from "dotenv";
 import { Resend } from "resend";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 10000;
@@ -13,6 +18,7 @@ const DEFAULT_FROM_EMAIL =
   process.env.RESEND_FROM_EMAIL || "VAT Checker <onboarding@resend.dev>";
 const APP_VERSION = "vies-post-fix-2026-04-27";
 const VIES_TIMEOUT_MS = 8000;
+const PDF_FONT_PATH = path.join(__dirname, "fonts", "DejaVuSans.ttf");
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
@@ -153,6 +159,7 @@ function generatePDF(report) {
     doc.on("end", () => resolve(Buffer.concat(buffers)));
     doc.on("error", reject);
 
+    doc.font(PDF_FONT_PATH);
     doc.info.Title = "VAT Report";
     doc.info.Author = "VIES Checker API";
 
