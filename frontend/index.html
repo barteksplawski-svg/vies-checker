@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sprawdź wewnątrzwspólnotowy numer VAT UE | VIES Checker</title>
+  <meta
+    name="description"
+    content="Sprawdź numer VAT UE w systemie VIES, pobierz raport PDF i wyślij wynik e-mailem. Praktyczny przewodnik po numerach VAT UE, działaniu VIES i formatom numerów w krajach Unii Europejskiej."
+  />
+  <meta
+    name="keywords"
+    content="VAT UE, VIES, sprawdzenie numeru VAT, wewnątrzwspólnotowy numer VAT, walidacja VAT UE, numer VAT EU, checker VIES"
+  />
+  <meta name="robots" content="index,follow" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Sprawdź wewnątrzwspólnotowy numer VAT UE | VIES Checker" />
+  <meta
+    property="og:description"
+    content="Walidacja numeru VAT UE w czasie rzeczywistym, raport PDF, wysyłka e-mailem oraz praktyczne wyjaśnienie zasad działania systemu VIES."
+  />
+  <meta property="og:locale" content="pl_PL" />
+  <meta property="og:image" content="./assets/vat-vies-hero.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="stylesheet" href="./style.css" />
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Jak sprawdzić numer VAT UE w systemie VIES?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Wybierz kraj rejestracji kontrahenta, wpisz numer VAT i uruchom weryfikację. Narzędzie sprawdza odpowiedź w systemie VIES i zwraca status numeru, nazwę oraz adres przedsiębiorstwa, jeśli są dostępne."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Co oznacza nieważny numer VAT UE?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Nieważny wynik może oznaczać błąd formatu, brak aktywacji numeru do transakcji wewnątrzwspólnotowych albo opóźnienie synchronizacji baz. Sam wynik nie przesądza jeszcze o złej wierze kontrahenta."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do czego służy VIES?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "VIES to europejski system wymiany informacji o numerach VAT. Łączy krajowe bazy państw członkowskich, aby umożliwić przedsiębiorcom i doradcom podatkowym weryfikację numerów VAT UE."
+          }
+        }
+      ]
+    }
+  </script>
+</head>
+<body>
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <span>Weryfikacja numerów VAT UE</span>
+      <span>VIES, PDF i wysyłka e-mail w jednym narzędziu</span>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <div class="brand-lockup">
+          <img
+            src="./assets/logo-eurofiscalis-light.png"
+            alt="Eurofiscalis"
+            class="brand-logo"
+            width="300"
+            height="71"
+          />
+        </div>
+        <p class="eyebrow">Narzędzie VAT UE</p>
+        <h1>Sprawdź wewnątrzwspólnotowy numer VAT w systemie VIES</h1>
+        <p class="lead">
+          Zweryfikuj aktywność numeru VAT UE kontrahenta w czasie rzeczywistym, pobierz raport PDF
+          i prześlij wynik e-mailem. Strona łączy praktyczne narzędzie z wyjaśnieniem zasad działania
+          VIES oraz podstaw numeracji VAT w Unii Europejskiej.
+        </p>
+        <ul class="hero-list">
+          <li>Walidacja numeru VAT UE dla państw członkowskich UE i Irlandii Północnej</li>
+          <li>Raport PDF do dokumentacji transakcji i archiwum</li>
+          <li>Wysyłka wyniku do klienta lub zespołu jednym kliknięciem</li>
+        </ul>
+
+        <figure class="hero-figure">
+          <img
+            src="./assets/vat-vies-hero.png"
+            alt="Weryfikacja wewnątrzwspólnotowego numeru VAT UE"
+            width="768"
+            height="768"
+          />
+        </figure>
+      </div>
+
+      <aside class="tool-card" aria-label="Sprawdzanie numeru VAT UE">
+        <h2>Sprawdź numer VAT UE</h2>
+        <p class="tool-intro">
+          Wybierz kraj, wpisz numer VAT i opcjonalnie adres e-mail. Narzędzie korzysta z API
+          połączonego z VIES.
+        </p>
+
+        <form id="vat-form" class="tool-form">
+          <div class="form-row">
+            <label for="country">Kod kraju</label>
+            <input id="country" name="country" value="PL" maxlength="2" placeholder="PL" />
+          </div>
+
+          <div class="form-row">
+            <label for="vat">Numer VAT</label>
+            <input id="vat" name="vat" value="9542257792" placeholder="Wpisz numer VAT" />
+          </div>
+
+          <div class="form-row">
+            <label for="email">Adres e-mail</label>
+            <input id="email" name="email" type="email" placeholder="Adres do wysyłki raportu" />
+          </div>
+
+          <div class="button-row">
+            <button type="submit" id="check-button" class="button button-primary">Sprawdź</button>
+            <button type="button" id="pdf-button" class="button button-secondary">Pobierz PDF</button>
+            <button type="button" id="email-button" class="button button-secondary">Wyślij e-mail</button>
+          </div>
+        </form>
+
+        <p id="status" class="status" aria-live="polite"></p>
+        <pre id="result" class="result-box">Gotowe.</pre>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container narrow">
+        <h2>Jak sprawdzić ważność numeru VAT UE</h2>
+        <p>
+          Aby potwierdzić ważność numeru VAT kontrahenta, wybierz państwo, w którym jest on zarejestrowany
+          do celów VAT, a następnie wpisz numer do weryfikacji. Połączenie z systemem VIES pozwala uzyskać
+          odpowiedź w czasie rzeczywistym i sprawdzić, czy numer jest aktywny dla rozliczeń
+          wewnątrzwspólnotowych.
+        </p>
+        <p>
+          Wynik warto zachować w dokumentacji transakcji. W praktyce przydaje się on przy kontroli podatkowej,
+          audycie wewnętrznym, onboardingu klienta oraz weryfikacji nowych dostawców i odbiorców.
+        </p>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="container grid-2">
+        <article class="content-card">
+          <h2>Co oznacza wynik aktywny albo nieaktywny</h2>
+          <p>
+            Aktywny numer VAT UE potwierdza, że w momencie zapytania numer figuruje w odpowiedniej bazie
+            i może być używany do transakcji wewnątrzwspólnotowych. W praktyce to ważny element należytej
+            staranności po stronie sprzedawcy i nabywcy.
+          </p>
+          <p>
+            Wynik nieaktywny nie musi automatycznie oznaczać nadużycia. Czasem problem wynika z literówki,
+            nieprawidłowego formatu, braku aktywacji numeru dla operacji unijnych albo opóźnienia aktualizacji
+            bazy danego kraju.
+          </p>
+        </article>
+
+        <article class="content-card">
+          <h2>Dlaczego warto zapisać wynik weryfikacji</h2>
+          <p>
+            Zapisany wynik potwierdza, że przed wykonaniem transakcji sprawdzono numer VAT kontrahenta.
+            To cenna część dokumentacji podatkowej, zwłaszcza przy sprzedaży wewnątrzwspólnotowej i stosowaniu
+            stawki 0% VAT dla WDT.
+          </p>
+          <p>
+            Dlatego na stronie dodaliśmy nie tylko sam checker, ale też możliwość pobrania raportu PDF
+            oraz wysłania wyniku e-mailem bez przechodzenia do osobnych narzędzi.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container narrow">
+        <h2>VAT UE: ważne informacje przed interpretacją wyniku</h2>
+        <p>
+          Systemy rejestracji VAT różnią się między państwami. Zdarza się, że firma posiada krajowy numer VAT,
+          ale nie ma jeszcze aktywacji do transakcji wewnątrzwspólnotowych. Możliwa jest też sytuacja, w której
+          numer nie został jeszcze zsynchronizowany z bazą wykorzystywaną przez VIES.
+        </p>
+        <p>
+          W takiej sytuacji warto sprawdzić poprawność formatu numeru, poprosić kontrahenta o potwierdzenie
+          statusu rejestracji oraz poprosić go o kontakt z właściwym urzędem skarbowym. Sam negatywny wynik
+          nie powinien być jedyną podstawą do daleko idących wniosków biznesowych.
+        </p>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="container narrow">
+        <h2>Do czego służy system VIES</h2>
+        <p>
+          VIES, czyli VAT Information Exchange System, to europejski system wymiany informacji o numerach VAT.
+          Jego zadaniem jest łączenie krajowych baz administracji podatkowych i umożliwienie weryfikacji,
+          czy wskazany numer VAT UE jest ważny dla transakcji wewnątrzwspólnotowych.
+        </p>
+        <p>
+          Narzędzie na tej stronie korzysta z odpowiedzi zwracanych przez system VIES. Dzięki temu możesz
+          sprawdzić numer w jednym miejscu, a przy okazji pobrać raport lub przesłać wynik dalej do klienta,
+          księgowości albo działu sprzedaży.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container narrow">
+        <h2>Co to jest wewnątrzwspólnotowy numer VAT</h2>
+        <p>
+          Wewnątrzwspólnotowy numer VAT to identyfikator podatkowy używany przez przedsiębiorców prowadzących
+          transakcje w obrębie Unii Europejskiej. Składa się z kodu kraju oraz lokalnego numeru podatkowego
+          w formacie właściwym dla danego państwa.
+        </p>
+        <p>
+          Firmy mogą korzystać z numeru VAT UE w swoim kraju rejestracji, a w niektórych modelach działalności
+          także uzyskać rejestrację VAT w innych państwach członkowskich. Dlatego poprawne sprawdzanie numerów
+          ma znaczenie nie tylko przy sprzedaży towarów, ale też przy usługach, logistyce i rozliczeniach OSS.
+        </p>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="container">
+        <h2>Struktura numerów VAT UE w krajach Unii Europejskiej</h2>
+        <p class="section-intro">
+          Zanim uznasz numer za nieaktywny, warto upewnić się, że jego format odpowiada regułom kraju rejestracji.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Państwo</th>
+                <th>Kod</th>
+                <th>Przykładowa struktura numeru VAT</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Austria</td><td>AT</td><td>U + 8 cyfr</td></tr>
+              <tr><td>Belgia</td><td>BE</td><td>0 + 9 cyfr</td></tr>
+              <tr><td>Bułgaria</td><td>BG</td><td>9 lub 10 cyfr</td></tr>
+              <tr><td>Chorwacja</td><td>HR</td><td>11 cyfr</td></tr>
+              <tr><td>Cypr</td><td>CY</td><td>8 cyfr + litera</td></tr>
+              <tr><td>Czechy</td><td>CZ</td><td>8, 9 lub 10 cyfr</td></tr>
+              <tr><td>Dania</td><td>DK</td><td>8 cyfr</td></tr>
+              <tr><td>Estonia</td><td>EE</td><td>9 cyfr</td></tr>
+              <tr><td>Finlandia</td><td>FI</td><td>8 cyfr</td></tr>
+              <tr><td>Francja</td><td>FR</td><td>2 znaki kontrolne + 9 cyfr</td></tr>
+              <tr><td>Grecja</td><td>EL</td><td>9 cyfr</td></tr>
+              <tr><td>Hiszpania</td><td>ES</td><td>9 znaków, możliwa litera na początku lub końcu</td></tr>
+              <tr><td>Holandia</td><td>NL</td><td>9 cyfr + B + 2 cyfry</td></tr>
+              <tr><td>Irlandia</td><td>IE</td><td>7 cyfr + 1 lub 2 litery</td></tr>
+              <tr><td>Litwa</td><td>LT</td><td>9 lub 12 cyfr</td></tr>
+              <tr><td>Luksemburg</td><td>LU</td><td>8 cyfr</td></tr>
+              <tr><td>Łotwa</td><td>LV</td><td>11 cyfr</td></tr>
+              <tr><td>Malta</td><td>MT</td><td>8 cyfr</td></tr>
+              <tr><td>Niemcy</td><td>DE</td><td>9 cyfr</td></tr>
+              <tr><td>Polska</td><td>PL</td><td>10 cyfr</td></tr>
+              <tr><td>Portugalia</td><td>PT</td><td>9 cyfr</td></tr>
+              <tr><td>Rumunia</td><td>RO</td><td>2 do 10 cyfr</td></tr>
+              <tr><td>Słowacja</td><td>SK</td><td>10 cyfr</td></tr>
+              <tr><td>Słowenia</td><td>SI</td><td>8 cyfr</td></tr>
+              <tr><td>Szwecja</td><td>SE</td><td>12 cyfr</td></tr>
+              <tr><td>Węgry</td><td>HU</td><td>8 cyfr</td></tr>
+              <tr><td>Włochy</td><td>IT</td><td>11 cyfr</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container grid-2">
+        <article class="content-card">
+          <h2>Dlaczego ważny numer VAT UE jest istotny biznesowo</h2>
+          <p>
+            Poprawna weryfikacja numeru VAT pomaga ograniczyć ryzyko podatkowe, wspiera prawidłowe fakturowanie
+            i porządkuje procesy compliance. To ważne szczególnie dla firm sprzedających za granicę, działów
+            księgowych, e-commerce i operatorów logistycznych.
+          </p>
+        </article>
+        <article class="content-card">
+          <h2>Kiedy potrzebne jest wsparcie doradcy VAT</h2>
+          <p>
+            Sama walidacja numeru nie rozwiązuje wszystkich problemów. Jeśli sprzedajesz do wielu krajów,
+            rozliczasz magazyny zagraniczne, OSS albo potrzebujesz rejestracji VAT za granicą, zwykle warto
+            połączyć weryfikację techniczną z oceną obowiązków podatkowych.
+          </p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div>
+        <strong>VIES Checker</strong>
+        <p>Walidacja numeru VAT UE, raport PDF i wysyłka e-mail z jednego miejsca.</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://vies-checker.onrender.com/health" target="_blank" rel="noopener noreferrer">Status API</a>
+        <a href="https://www.eurofiscalis.com/pl/sprawdz-wewnatrzwspolnotowy-numer-vat/" target="_blank" rel="noopener noreferrer">Źródło tematu</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const API_URL = "https://vies-checker.onrender.com";
+    const form = document.getElementById("vat-form");
+    const countryInput = document.getElementById("country");
+    const vatInput = document.getElementById("vat");
+    const emailInput = document.getElementById("email");
+    const checkButton = document.getElementById("check-button");
+    const pdfButton = document.getElementById("pdf-button");
+    const emailButton = document.getElementById("email-button");
+    const result = document.getElementById("result");
+    const status = document.getElementById("status");
+
+    function getPayload() {
+      return {
+        country: countryInput.value.trim().toUpperCase(),
+        vat: vatInput.value.trim(),
+        email: emailInput.value.trim()
+      };
+    }
+
+    function setBusy(isBusy, label = "Sprawdzanie...") {
+      checkButton.disabled = isBusy;
+      pdfButton.disabled = isBusy;
+      emailButton.disabled = isBusy;
+      checkButton.textContent = isBusy ? label : "Sprawdź";
+    }
+
+    function setStatus(message, tone = "") {
+      status.textContent = message;
+      status.className = tone ? `status ${tone}` : "status";
+    }
+
+    async function checkVat(event) {
+      if (event) {
+        event.preventDefault();
+      }
+
+      const { country, vat } = getPayload();
+
+      if (!country || !vat) {
+        setStatus("Wpisz kod kraju i numer VAT.", "error");
+        return;
+      }
+
+      setBusy(true, "Sprawdzanie...");
+      setStatus("Trwa sprawdzenie numeru w VIES...");
+      result.textContent = "Oczekiwanie na odpowiedź...";
+
+      try {
+        const response = await fetch(
+          `${API_URL}/check?country=${encodeURIComponent(country)}&vat=${encodeURIComponent(vat)}`
+        );
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Request failed");
+        }
+
+        result.textContent = JSON.stringify(data, null, 2);
+        setStatus(
+          data.valid
+            ? "Numer VAT jest aktywny."
+            : "Numer VAT jest nieaktywny albo odpowiedź nie była rozstrzygająca.",
+          data.valid ? "success" : ""
+        );
+      } catch (error) {
+        result.textContent = JSON.stringify({ error: error.message }, null, 2);
+        setStatus("Nie udało się wykonać sprawdzenia.", "error");
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function downloadPdf() {
+      const { country, vat } = getPayload();
+
+      if (!country || !vat) {
+        setStatus("Wpisz kod kraju i numer VAT.", "error");
+        return;
+      }
+
+      setStatus("Otwieranie raportu PDF...");
+      window.open(
+        `${API_URL}/pdf?country=${encodeURIComponent(country)}&vat=${encodeURIComponent(vat)}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+    }
+
+    async function sendEmail() {
+      const { country, vat, email } = getPayload();
+
+      if (!country || !vat) {
+        setStatus("Wpisz kod kraju i numer VAT.", "error");
+        return;
+      }
+
+      if (!email) {
+        setStatus("Wpisz adres e-mail.", "error");
+        return;
+      }
+
+      setBusy(true, "Wysyłanie...");
+      setStatus("Trwa wysyłka raportu...");
+      result.textContent = "Oczekiwanie na odpowiedź...";
+
+      try {
+        const response = await fetch(`${API_URL}/send-email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ country, vat, email })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || data.message || "Email request failed");
+        }
+
+        result.textContent = JSON.stringify(data, null, 2);
+        setStatus("Raport został wysłany e-mailem.", "success");
+      } catch (error) {
+        result.textContent = JSON.stringify({ error: error.message }, null, 2);
+        setStatus("Nie udało się wysłać e-maila.", "error");
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    form.addEventListener("submit", checkVat);
+    pdfButton.addEventListener("click", downloadPdf);
+    emailButton.addEventListener("click", sendEmail);
+  </script>
+</body>
+</html>
