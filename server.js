@@ -17,9 +17,7 @@ app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
 function normalizeCountry(value) {
-  return String(value || "")
-    .trim()
-    .toUpperCase();
+  return String(value || "").trim().toUpperCase();
 }
 
 function normalizeVat(value) {
@@ -77,16 +75,14 @@ function parseVatInput(source) {
   };
 }
 
-async function fetchWithTimeout(url, timeout = VIES_TIMEOUT_MS) {
+async function fetchWithTimeout(url, options = {}, timeout = VIES_TIMEOUT_MS) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
   try {
     return await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        Accept: "application/json"
-      }
+      ...options,
+      signal: controller.signal
     });
   } finally {
     clearTimeout(timer);
@@ -95,12 +91,24 @@ async function fetchWithTimeout(url, timeout = VIES_TIMEOUT_MS) {
 
 async function checkVAT(country, vat) {
   const url =
-    "https://ec.europa.eu/taxation_customs/vies/rest-api/check-vat-number" +
-    `?memberStateCode=${encodeURIComponent(country)}` +
-    `&number=${encodeURIComponent(vat)}`;
+    "https://ec.europa.eu/taxation_customs/vies/rest-api/check-vat-number";
 
   try {
-    const response = await fetchWithTimeout(url);
+    const response = await fetchWithTimeout(
+      url,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        },
+        body: JSON.stringify({
+          countryCode: country,
+          vatNumber: vat
+        })
+      },
+      VIES_TIMEOUT_MS
+    );
 
     if (!response.ok) {
       throw new Error(`VIES returned HTTP ${response.status}`);
@@ -115,7 +123,7 @@ async function checkVAT(country, vat) {
       address: data.address?.trim() || "-",
       country,
       vat,
-      requestDate: new Date().toISOString()
+      requestDate: data.requestDate || new Date().toISOString()
     };
   } catch (error) {
     return {
