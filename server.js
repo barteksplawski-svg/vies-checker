@@ -12,39 +12,21 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 10000;
 
-/* ---------------- ROOT ---------------- */
 app.get("/", (req, res) => {
-  res.json({
-    service: "VIES Checker API",
-    status: "running"
-  });
+  res.json({ status: "ok", service: "VIES Checker" });
 });
 
-/* ---------------- VIES CHECK ---------------- */
-async function checkVAT(countryCode, vatNumber) {
+async function checkVAT(country, vat) {
   try {
-    const response = await fetch(
-      `https://ec.europa.eu/taxation_customs/vies/rest-api/check-vat-number?memberStateCode=${countryCode}&number=${vatNumber}`
+    const r = await fetch(
+      `https://ec.europa.eu/taxation_customs/vies/rest-api/check-vat-number?memberStateCode=${country}&number=${vat}`
     );
-
-    const data = await response.json();
-
-    return {
-      valid: data.valid,
-      name: data.name,
-      address: data.address,
-      countryCode,
-      vatNumber
-    };
-  } catch (err) {
-    return {
-      valid: false,
-      error: "VIES unavailable"
-    };
+    return await r.json();
+  } catch {
+    return { valid: false, error: "VIES unavailable" };
   }
 }
 
-/* ---------------- PDF ---------------- */
 function generatePDF(data) {
   return new Promise((resolve) => {
     const doc = new PDFDocument();
@@ -53,49 +35,32 @@ function generatePDF(data) {
     doc.on("data", buffers.push.bind(buffers));
     doc.on("end", () => resolve(Buffer.concat(buffers)));
 
-    doc.fontSize(16).text("VAT VALIDATION REPORT");
-    doc.moveDown();
-
-    doc.text(`VAT: ${data.countryCode}${data.vatNumber}`);
-    doc.text(`STATUS: ${data.valid ? "VALID" : "INVALID"}`);
-    doc.text(`COMPANY: ${data.name || "-"}`);
-    doc.text(`ADDRESS: ${data.address || "-"}`);
+    doc.text("VAT REPORT");
+    doc.text(JSON.stringify(data, null, 2));
 
     doc.end();
   });
 }
 
-/* ---------------- API ---------------- */
 app.get("/check", async (req, res) => {
-  const { country, vat } = req.query;
-
-  if (!country || !vat) {
-    return res.status(400).json({ error: "Missing data" });
-  }
-
-  const data = await checkVAT(country, vat);
+  const data = await checkVAT(req.query.country, req.query.vat);
   res.json(data);
 });
 
 app.get("/pdf", async (req, res) => {
-  const { country, vat } = req.query;
-
-  const data = await checkVAT(country, vat);
+  const data = await checkVAT(req.query.country, req.query.vat);
   const pdf = await generatePDF(data);
 
   res.setHeader("Content-Type", "application/pdf");
   res.send(pdf);
 });
 
-/* ---------------- EMAIL ---------------- */
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.post("/send-email", async (req, res) => {
   const { email, country, vat } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ error: "Missing email" });
-  }
+  if (!email) return res.status(400).json({ error: "missing email" });
 
   const data = await checkVAT(country, vat);
   const pdf = await generatePDF(data);
@@ -105,22 +70,18 @@ app.post("/send-email", async (req, res) => {
       from: "onboarding@resend.dev",
       to: email,
       subject: "VAT Report",
-      text: "Your VAT report attached",
+      text: "Attached report",
       attachments: [
-        {
-          filename: "report.pdf",
-          content: pdf
-        }
+        { filename: "report.pdf", content: pdf }
       ]
     });
 
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: "Email failed" });
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: "email failed" });
   }
 });
 
-/* ---------------- START ---------------- */
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Server running on " + PORT);
 });
