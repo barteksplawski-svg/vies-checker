@@ -11,6 +11,7 @@ const PORT = Number(process.env.PORT) || 10000;
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const DEFAULT_FROM_EMAIL =
   process.env.RESEND_FROM_EMAIL || "VAT Checker <onboarding@resend.dev>";
+const APP_VERSION = "vies-post-fix-2026-04-27";
 const VIES_TIMEOUT_MS = 8000;
 
 app.use(cors());
@@ -197,13 +198,14 @@ app.get("/", (req, res) => {
   res.json({
     service: "VIES Checker API",
     status: "running",
-    version: "1.0.0"
+    version: APP_VERSION
   });
 });
 
 app.get("/health", (req, res) => {
   res.json({
     ok: true,
+    version: APP_VERSION,
     uptime: process.uptime(),
     resendConfigured: Boolean(RESEND_API_KEY)
   });
